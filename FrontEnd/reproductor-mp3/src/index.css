@@ -1,0 +1,20 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
+
+:root {
+  font-family: 'Manrope', 'Segoe UI', sans-serif;
+  color: #6f6963;
+  background: #fbf9f6;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  --ink: #202329;
+  --muted: #7f7871;
+  --orange: #ef5b33;
+  --line: #e9e2dc;
+}
+* { box-sizing: border-box; }
+html { min-width: 320px; scroll-behavior: smooth; }
+body { margin: 0; min-width: 320px; min-height: 100vh; }
+button,input,select { font-family: inherit; }
+button { -webkit-tap-highlight-color: transparent; }
+::selection { color: white; background: var(--orange); }

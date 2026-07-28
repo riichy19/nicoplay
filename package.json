@@ -1,0 +1,22 @@
+{
+  "name": "nicoplay",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "Backend",
+    "FrontEnd/reproductor-mp3"
+  ],
+  "scripts": {
+    "dev": "concurrently -n API,WEB -c blue,magenta \"npm run dev --workspace=Backend\" \"npm run dev --workspace=reproductor-mp3\"",
+    "build": "npm run build --workspace=reproductor-mp3",
+    "start": "node app.js",
+    "test": "npm test --workspace=Backend",
+    "lint": "npm run lint --workspace=reproductor-mp3"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}

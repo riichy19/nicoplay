@@ -1,0 +1,20 @@
+{
+  "name": "@nicoplay/backend",
+  "version": "1.0.0",
+  "description": "API para consultar y descargar contenido autorizado como MP3 o MP4",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node --test"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}

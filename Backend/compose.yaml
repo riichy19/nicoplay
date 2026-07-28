@@ -1,0 +1,17 @@
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: Backend/Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: 3000
+      TEMP_DIR: /tmp/convertidor
+      ALLOWED_HOSTS: youtube.com,youtu.be,x.com,twitter.com
+      MAX_CONCURRENT_DOWNLOADS: 1
+      MAX_DURATION_SECONDS: 14400
+      MAX_VIDEO_HEIGHT: 1080
+      MAX_FILE_SIZE_MB: 8192
+      DOWNLOAD_TIMEOUT_MS: 14400000
+    restart: unless-stopped
