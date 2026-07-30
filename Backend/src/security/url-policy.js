@@ -113,6 +113,9 @@ async function validateMediaUrl(rawUrl, allowedHosts, lookup = dns.lookup) {
   }
 
   parsed.hash = "";
+  parsed.searchParams.delete("list");
+  parsed.searchParams.delete("index");
+  parsed.searchParams.delete("start_radio");
   return parsed.toString();
 }
 

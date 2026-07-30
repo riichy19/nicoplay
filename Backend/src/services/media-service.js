@@ -67,6 +67,9 @@ function runProcess(command, args, { timeoutMs, signal } = {}) {
     });
     child.on("close", (code) => {
       if (code === 0) return finish(null, { stdout, stderr });
+      if (stderr.trim()) {
+        console.error(`[${command}] ${stderr.slice(-2000)}`);
+      }
       finish(
         new AppError(
           422,
