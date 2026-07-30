@@ -101,7 +101,6 @@ class MediaService {
     const args = [
       "--no-playlist",
       "--no-warnings",
-      "--no-call-home",
       "--socket-timeout",
       "20",
       "--js-runtimes",
@@ -195,6 +194,45 @@ class MediaService {
       return {
         path: resolvedPath,
         filename: `${safeDownloadName(path.basename(resolvedPath, path.extname(resolvedPath)), "media")}${extension}`,
+        cleanup: () => fs.rm(jobDir, { recursive: true, force: true }),
+      };
+    } catch (error) {
+      await fs.rm(jobDir, { recursive: true, force: true }).catch(() => {});
+      throw error;
+    } finally {
+      release();
+    }
+  }
+
+  async convertUpload(buffer, originalName, format, signal) {
+    const release = await this.semaphore.acquire();
+    const jobDir = path.join(this.config.tempDir, randomUUID());
+    await fs.mkdir(jobDir, { recursive: true });
+
+    try {
+      const inputExtension = path.extname(originalName || ".upload").toLowerCase().slice(0, 10) || ".upload";
+      const inputPath = path.join(jobDir, `input${inputExtension}`);
+      const outputExtension = format === "mp3" ? ".mp3" : ".mp4";
+      const outputPath = path.join(jobDir, `nicoplay${outputExtension}`);
+      await fs.writeFile(inputPath, buffer);
+
+      const args = format === "mp3"
+        ? ["-y", "-i", inputPath, "-vn", "-codec:a", "libmp3lame", "-q:a", "0", outputPath]
+        : ["-y", "-i", inputPath, "-c:v", "libx264", "-c:a", "aac", "-movflags", "+faststart", outputPath];
+      await runProcess(this.config.ffmpegPath, args, {
+        timeoutMs: this.config.downloadTimeoutMs,
+        signal,
+      });
+
+      const stat = await fs.stat(outputPath).catch(() => null);
+      if (!stat?.isFile()) throw new AppError(502, "OUTPUT_NOT_FOUND", "No se generó el archivo esperado");
+      if (stat.size > this.config.maxFileSizeMb * 1024 * 1024) {
+        throw new AppError(413, "FILE_TOO_LARGE", "El archivo supera el tamaño permitido");
+      }
+
+      return {
+        path: outputPath,
+        filename: `${safeDownloadName(path.basename(originalName || "media", path.extname(originalName || "")), "media")}${outputExtension}`,
         cleanup: () => fs.rm(jobDir, { recursive: true, force: true }),
       };
     } catch (error) {

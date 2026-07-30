@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import './App.css'
-import { downloadMedia, getMediaInfo } from './api/media'
+import { uploadMedia } from './api/upload'
 
 type Format = 'mp3' | 'mp4'
 type JobStatus = 'idle' | 'processing' | 'ready'
@@ -18,17 +18,9 @@ const demoHistory = [
   { title: 'Creative workflow tutorial', format: 'MP4', meta: '14:18 · 108 MB', time: 'Ayer' },
 ]
 
-function isValidUrl(value: string) {
-  try {
-    const url = new URL(value)
-    return url.protocol === 'http:' || url.protocol === 'https:'
-  } catch {
-    return false
-  }
-}
-
 function App() {
-  const [url, setUrl] = useState('')
+  const [file, setFile] = useState<File | null>(null)
+  const [downloadedFile, setDownloadedFile] = useState<{ blob: Blob; filename: string } | null>(null)
   const [format, setFormat] = useState<Format>('mp3')
   const [quality, setQuality] = useState('320 kbps')
   const [status, setStatus] = useState<JobStatus>('idle')
@@ -55,8 +47,8 @@ function App() {
     setError('')
     setNotice('')
 
-    if (!isValidUrl(url.trim())) {
-      setError('Ingresa un enlace válido que comience con http:// o https://')
+    if (!file) {
+      setError('Selecciona un archivo de audio o video')
       return
     }
 
@@ -74,9 +66,10 @@ function App() {
     }, 180)
 
     try {
-      const info = await getMediaInfo(url.trim(), requestRef.current.signal)
+      const result = await uploadMedia(file, format)
       if (timerRef.current) window.clearInterval(timerRef.current)
-      setMediaTitle(info.title)
+      setDownloadedFile(result)
+      setMediaTitle(file.name)
       setProgress(100)
       window.setTimeout(() => setStatus('ready'), 250)
     } catch (requestError) {
@@ -95,7 +88,8 @@ function App() {
     requestRef.current?.abort()
     setProgress(0)
     setStatus('idle')
-    setUrl('')
+    setFile(null)
+    setDownloadedFile(null)
     setError('')
     setNotice('')
     setMediaTitle('')
@@ -107,11 +101,11 @@ function App() {
     setIsDownloading(true)
 
     try {
-      const file = await downloadMedia(url.trim(), format)
-      const blobUrl = URL.createObjectURL(file.blob)
+      if (!downloadedFile) throw new Error('No hay un archivo convertido disponible')
+      const blobUrl = URL.createObjectURL(downloadedFile.blob)
       const link = document.createElement('a')
       link.href = blobUrl
-      link.download = file.filename
+      link.download = downloadedFile.filename
       link.click()
       URL.revokeObjectURL(blobUrl)
       setNotice('Descarga iniciada.')
@@ -146,31 +140,26 @@ function App() {
 
           <div className="converter-card">
             <form onSubmit={startConversion} noValidate>
-              <label className="field-label" htmlFor="media-url">Enlace del video</label>
+                  <label className="field-label" htmlFor="media-file">Archivo de audio o video</label>
               <div className={`url-field ${error ? 'has-error' : ''}`}>
                 <span aria-hidden="true">↗</span>
-                <input
-                  id="media-url"
-                  value={url}
-                  onChange={(event) => {
-                    setUrl(event.target.value)
-                    if (error) setError('')
-                  }}
-                  placeholder="https://ejemplo.com/tu-video"
-                  inputMode="url"
-                  autoComplete="url"
+                  <input
+                    id="media-file"
+                    type="file"
+                    accept="audio/*,video/*"
+                    onChange={(event) => {
+                      setFile(event.target.files?.[0] || null)
+                      if (error) setError('')
+                    }}
                   disabled={status === 'processing'}
                   aria-describedby={error ? 'url-error' : 'url-help'}
                   aria-invalid={Boolean(error)}
                 />
-                {url && status !== 'processing' && (
-                  <button className="clear-button" type="button" onClick={() => setUrl('')} aria-label="Borrar enlace">×</button>
-                )}
               </div>
               {error ? (
                 <p className="field-message error-message" id="url-error" role="alert">! {error}</p>
               ) : (
-                <p className="field-message" id="url-help">Admite enlaces públicos de tus plataformas compatibles.</p>
+                <p className="field-message" id="url-help">Sube un archivo propio o autorizado desde tu dispositivo.</p>
               )}
 
               <div className="options-grid">
