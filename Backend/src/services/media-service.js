@@ -101,6 +101,8 @@ class MediaService {
       "--no-call-home",
       "--socket-timeout",
       "20",
+      "--js-runtimes",
+      "node",
     ];
     if (this.config.ffmpegPath !== "ffmpeg") {
       args.push("--ffmpeg-location", this.config.ffmpegPath);
