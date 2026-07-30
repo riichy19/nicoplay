@@ -75,7 +75,7 @@ function runProcess(command, args, { timeoutMs, signal } = {}) {
           422,
           "MEDIA_PROCESSING_FAILED",
           "No fue posible procesar el contenido solicitado",
-          process.env.NODE_ENV === "development" ? stderr.slice(-1000) : undefined,
+          stderr.slice(-1000).replace(/\s+/g, " ").trim() || undefined,
         ),
       );
     });
