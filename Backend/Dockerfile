@@ -30,6 +30,11 @@ COPY --from=builder /app/FrontEnd/reproductor-mp3/dist ./FrontEnd/reproductor-mp
 
 ENV NODE_ENV=production
 ENV PORT=3000
+ENV TEMP_DIR=/tmp/convertidor
+
+RUN mkdir -p /tmp/convertidor \
+    && chown -R node:node /tmp/convertidor
+
 EXPOSE 3000
 
 USER node
